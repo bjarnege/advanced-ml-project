@@ -116,12 +116,13 @@ class ArXivS3Scraper:
                         key = file['Key']
                         # If current file is a tar
                         if key.endswith('.tar'):
-                            self.download_file(key, pbar)
+                            if not os.path.exists(key.replace("src","data").replace(".tar","")):
+                                self.download_file(key, pbar)
                     
-                            # extract data
-                            untar(key)
-                            clean(key)
-                            
+                                # extract data
+                                untar(key)
+                                clean(key)
+                                
                     pbar.update(1)
                     
         print('Processed ' + str(numFiles - 1) + ' tars')  # -1 
