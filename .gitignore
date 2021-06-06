@@ -1,5 +1,6 @@
 /src/arXivScraper/src/*
 /src/arXivScraper/data
+/src/arXivScraper/metadata
 
 __pycache__
 config.ini
