@@ -17,11 +17,11 @@ df_metadata = pd.read_pickle(metadata_path+"/metadata_df_filtered.pkl")
 vectorizer = Vectorizer.VectorizeData()
 
 #%% Vectorize abstract:
-print("Starting with word2vec for abstracts ... \n", flush=True)
+print("Vecotrizing abstracts ... \n", flush=True)
 vectors_abstract = [vectorizer.embed_text(abstract) for abstract in tqdm(list(df_metadata["abstract"].values))]
     
 #%% Vectorize titles:
-print("Starting with word2vec for titles ... \n", flush=True)
+print("Vectorizing titles ... \n", flush=True)
 vectors_title = [vectorizer.embed_text(title) for title in tqdm(list(df_metadata["title"].values))]
 
 #%% Convert and store vectors

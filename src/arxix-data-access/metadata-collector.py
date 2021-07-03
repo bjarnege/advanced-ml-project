@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 
-def read_all_metadata(metadata_path = "../../resource/arxiv-metadata-oai.json"):
+def read_all_metadata(metadata_path = "../../resource/arxiv-metadata-oai-snapshot.json"):
     articles = []
     with open(metadata_path, "r") as f:
         for l in tqdm(f):

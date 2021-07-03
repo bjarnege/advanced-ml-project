@@ -56,9 +56,9 @@ class API(FlaskView):
 
         return data.to_dict()
     
-    @route('/api/<url>')
-    def recommend(self, url):
-        data = self.__find_paper_data(url)
+    @route('/api/<category>/<id>')
+    def recommend(self,category, id):
+        data = self.__find_paper_data(category+"/"+id)
         print(data)
         data["top_n_titles"] = self.knn_title.kneighbors(data["title"])["cos sim"].to_dict()
         data["top_n_abstracts"] = self.knn_abstract.kneighbors(data["title"])["cos sim"].to_dict()
@@ -68,4 +68,4 @@ class API(FlaskView):
 
 if __name__ == '__main__':
     API.register(app, route_base = '/')
-    app.run(host='0.0.0.0', port=5050, debug=False)
+    app.run(host='0.0.0.0', port=12345, debug=False)

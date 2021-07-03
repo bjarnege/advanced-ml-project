@@ -22,7 +22,7 @@ class VectorizeData:
             self.model.to(self.device) ## model to GPU
             
         else:
-            print("Warning, no GPU detected, processing will take time...", flush=True)
+            print("\n"*10+"Warning, no GPU detected, processing will take time..."+"\n"*4, flush=True)
             self.device = "cpu"
             
     def embed_text(self, texts, max_length = 512):
