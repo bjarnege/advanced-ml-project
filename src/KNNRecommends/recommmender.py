@@ -37,5 +37,5 @@ class FindNeighbors:
         vector = self.word2vec.embed_text(text)
         cosine, neighbors_indexes = self.neigh.kneighbors(vector)
         neighbors = pd.DataFrame(self.X_raw.iloc[neighbors_indexes[0]])
-        neighbors["cos distance"] = cosine[0]
+        neighbors["cos sim"] = 1 - cosine[0]
         return neighbors

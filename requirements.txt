@@ -1,3 +1,4 @@
+gsutil
 Flask
 Flask_Classful
 numpy == 1.20.1

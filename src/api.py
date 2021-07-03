@@ -60,8 +60,8 @@ class API(FlaskView):
     def recommend(self, url):
         data = self.__find_paper_data(url)
         print(data)
-        data["top_n_titles"] = self.knn_title.kneighbors(data["title"])["cos distance"].to_dict()
-        data["top_n_abstracts"] = self.knn_abstract.kneighbors(data["title"])["cos distance"].to_dict()
+        data["top_n_titles"] = self.knn_title.kneighbors(data["title"])["cos sim"].to_dict()
+        data["top_n_abstracts"] = self.knn_abstract.kneighbors(data["title"])["cos sim"].to_dict()
         
         return data
 
