@@ -12,6 +12,8 @@ import torch.nn.functional as F
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 # customized dataset class
 class MyDataset(Dataset):
     def __init__(self, data, transform=None):
@@ -114,28 +116,32 @@ def encode(pdf_path, pdf_id, transform, model):
         # iterate over found images
         for image_index, img in enumerate(page.getImageList(), start=1):
             
-            # get the XREF of the image
-            xref = img[0]
-            # extract the image bytes
-            base_image = pdf_file.extractImage(xref)
-            image_bytes = base_image["image"]
-            # get the image extension
-            image_ext = base_image["ext"]
-            
-            # load it to PIL, convert to RGBA and resize
-            image = [Image.open(io.BytesIO(image_bytes)).convert(mode="RGBA").resize((200,200))]
-            
-            # load image to pytorch pipeline
-            image_dataset = MyDataset(image, transform=transform)
-            image_loader = torch.utils.data.DataLoader(image_dataset, batch_size=1)
-            
-            # feed image to the VAE Model
-            batch_idx, data = next(enumerate(image_loader))
-            with torch.no_grad():
-                x_hat, mean, log_var, z = model(data.to(device))
-            
-            images_encoded.append(z.cpu().numpy()[0])
-            paper_ids.append(pdf_id)
+            try:
+
+                # get the XREF of the image
+                xref = img[0]
+                # extract the image bytes
+                base_image = pdf_file.extractImage(xref)
+                image_bytes = base_image["image"]
+                # get the image extension
+                image_ext = base_image["ext"]
+
+                # load it to PIL, convert to RGBA and resize
+                image = [Image.open(io.BytesIO(image_bytes)).convert(mode="RGBA").resize((200,200))]
+
+                # load image to pytorch pipeline
+                image_dataset = MyDataset(image, transform=transform)
+                image_loader = torch.utils.data.DataLoader(image_dataset, batch_size=1)
+
+                # feed image to the VAE Model
+                batch_idx, data = next(enumerate(image_loader))
+                with torch.no_grad():
+                    x_hat, mean, log_var, z = model(data.to(device))
+
+                images_encoded.append(z.cpu().numpy()[0])
+                paper_ids.append(pdf_id)
+                
+            except:
+                pass
             
     return images_encoded, paper_ids
-
