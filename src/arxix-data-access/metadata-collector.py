@@ -30,7 +30,7 @@ def read_all_filename(output_path = "../../resource/arxiv_data"):
     indexes = []
     for path in list(Path(output_path).rglob('*.pdf'))[::-1]:
         path = str(path).replace("\\", "/")
-        path_w_o_version = path[:-6]
+        path_w_o_version = "".join(path.split("v")[:-1])
         if not path_w_o_version in paths_check:
             paths_check.append(path_w_o_version)
             paths.append(path)
