@@ -141,7 +141,7 @@ def encode(pdf_path, pdf_id, transform, model):
                 images_encoded.append(z.cpu().numpy()[0])
                 paper_ids.append(pdf_id)
                 
-            except:
+            except (OSError, TypeError):
                 pass
             
     return images_encoded, paper_ids
