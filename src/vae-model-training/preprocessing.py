@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torchvision.transforms as transforms
 import vae
@@ -41,7 +40,7 @@ decoder = vae.Decoder(latent_dim=50, hidden_dim = 300)
 
 model = vae.VAE(Encoder=encoder, Decoder=decoder).to(device)
 
-model.load_state_dict(torch.load(f"../../resource/vae/models/VAE_epoch_178.pt", map_location=device))
+model.load_state_dict(torch.load("../../resource/vae/models/VAE_epoch_178.pt", map_location=device))
 
 model.eval()
 

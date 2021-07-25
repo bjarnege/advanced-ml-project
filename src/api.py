@@ -3,7 +3,7 @@ import pandas as pd
 import json
 import pickle
 from flask_classful import FlaskView, route
-from KNNRecommends.Vectorizer import VectorizeData
+from KNNRecommends.SciBERTVectorizer import VectorizeData
 from KNNRecommends.recommmender import FindNeighbors
 
 
@@ -55,10 +55,11 @@ class API(FlaskView):
         data["author_ids"] = [self.author_id_mapping["".join(author)] for author in data["authors_parsed"]]
 
         return data.to_dict()
-    
-    @route('/api/<category>/<id>')
-    def recommend(self,category, id):
-        data = self.__find_paper_data(category+"/"+id)
+        
+        
+    @route('/api/<category>/<id_>')
+    def recommend(self, category, id_):
+        data = self.__find_paper_data(category+"/"+id_)
         print(data)
         data["top_n_titles"] = self.knn_title.kneighbors(data["title"])["cos sim"].to_dict()
         data["top_n_abstracts"] = self.knn_abstract.kneighbors(data["title"])["cos sim"].to_dict()

@@ -4,38 +4,101 @@ Created on Thu Jul  1 21:13:48 2021
 
 @author: Bjarne Gerdes
 """
-
-import pandas as pd
 import numpy as np
+import pandas as pd
 from scipy import spatial
 from sklearn.neighbors import NearestNeighbors
 
 
 class FindNeighbors:
     
-    def __init__(self, X_raw, word2vec, X=None):
-        self.word2vec = word2vec
+    def __init__(self, author_graph, X_raw, X_raw_filtered, vectorizer_pipeline_words, vectorizer_pipeline_images,\
+                 X_titles, X_abstracts, X_img, k):
+        # Load transformation pipelines
+        self.vectorizer_pipeline_words = vectorizer_pipeline_words
+        self.vectorizer_pipeline_images = vectorizer_pipeline_images
+        
+        # Load Metadatafiles and the author graph
         self.X_raw = X_raw
-        
-        if type(X) != None:
-            self.X = X
-        
+        self.X_raw_filtered = X_raw_filtered
+        self.author_graph = author_graph
+    
+        # Load precalculated vectors        
+        self.X_titles = X_titles
+        self.X_abstracts = X_abstracts
+        self.X_img = X_img
+
+        # k used for KNN
+        self.k = k
         
     def cos(self, x_1, x_2):
         return spatial.distance.cosine(x_1, x_2)
         
-    def fit(self, k):
-        if not hasattr(self, 'X'):
-            self.X = np.array([self.word2vec.\
-                               embed_text(text)[0]\
-                               for text in self.X_raw])
-
-        self.neigh = NearestNeighbors(n_neighbors=k, metric=self.cos)
-        self.neigh.fit(self.X)
+    def fit(self, coauthor_paper_ids=None):
+        
+        # Fit the KNN model based on title BERT-vectors
+        self.neigh_titles = NearestNeighbors(n_neighbors=self.k, metric=self.cos)
+        
+ 
+        # Fit the KNN model based on abstract BERT-vectors
+        self.neigh_abstracts = NearestNeighbors(n_neighbors=self.k, metric=self.cos)
     
-    def kneighbors(self, text):
-        vector = self.word2vec.embed_text(text)
-        cosine, neighbors_indexes = self.neigh.kneighbors(vector)
+        # Fit the KNN model based on img vectors
+        self.neigh_images = NearestNeighbors(n_neighbors=self.k, metric=self.cos)
+    
+        if coauthor_paper_ids is not None:
+            self.neigh_titles.fit(self.X_titles.loc[coauthor_paper_ids])
+            self.neigh_abstracts.fit(self.X_abstracts.loc[coauthor_paper_ids])
+            self.neigh_images.fit(self.X_img.loc[coauthor_paper_ids])
+        else:
+            self.neigh_titles.fit(self.X_titles)
+            self.neigh_abstracts.fit(self.X_abstracts)
+            self.neigh_images.fit(self.X_img)            
+            
+            
+    def get_neighbors_df(self, vector, knn):
+        cosine, neighbors_indexes = knn.kneighbors(vector)
         neighbors = pd.DataFrame(self.X_raw.iloc[neighbors_indexes[0]])
         neighbors["cos sim"] = 1 - cosine[0]
-        return neighbors
+        # filter all neighbors that are the same as the submitted paper
+        neighbors = neighbors[neighbors["cos sim"] < 1]
+        # exclude top 10 neighbors        
+        return neighbors.head(10)
+
+    
+    def kneighbors(self, title_text, abstract_text, url_pdf, paper_id,
+                   pipeline=["coauthors", "coauthor_filter", "titles", "abstracts", "images"]):
+        results = dict()
+        results["comments"] = []
+        
+        if "coauthors" in pipeline or "coauthor_filter" in pipeline:
+            ids = self.X_raw.loc[paper_id]["author_id"]
+            all_co_authors = set(np.array(list(self.author_graph.edges(ids)))[:,1])
+            filters = self.X_raw_filtered["author_id"].apply(lambda x: bool(set(all_co_authors) & set(x)))
+            
+            if "coauthors" in pipeline:
+                results["coauthors"] = self.X_raw_filtered[filters]
+                
+            if "coauthor_filter" in pipeline:
+                if len(results["coauthors"]) == 0:
+                    results["comments"].append("No Co-Author-matches found in dataset. Co-Author-Filter will be ignored.")
+                else:    
+                    self.fit(coauthor_paper_ids=list(results["coauthors"].index))
+                
+        if "titles" in pipeline:
+            vector_title = self.vectorizer_pipeline_words.vectorize(title_text)
+            results["title"] = self.get_neighbors_df(vector_title, self.neigh_titles)
+            
+        if "abstracts" in pipeline:
+            vector_abstracts = self.vectorizer_pipeline_words.vectorize(abstract_text)
+            results["abstracts"] = self.get_neighbors_df(vector_abstracts, self.neigh_abstracts)
+            
+        if "images" in pipeline:
+            vector_images = self.vectorizer_pipeline_images.vectorize(url_pdf)
+            results["images"] = self.get_neighbors_df([vector_images], self.neigh_images)
+        
+        # refit to ensure to forget about coauthors after calculations
+        if "coauthor_filter" in pipeline:
+            self.fit()
+            
+        return results

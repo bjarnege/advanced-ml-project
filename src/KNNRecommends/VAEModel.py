@@ -1,18 +1,10 @@
-from torch.utils.data import Dataset, DataLoader
-import torch.nn as nn
-import cv2
-from skimage.io import imread
-from imgviz import gray2rgb, rgb2rgba
-import fitz
-import io
-from PIL import Image
-import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-ImageFile.LOAD_TRUNCATED_IMAGES = True
+from torch.utils.data import Dataset
+import io
+import fitz
+from PIL import Image
 
 # customized dataset class
 class MyDataset(Dataset):
@@ -80,13 +72,14 @@ class Decoder(nn.Module):
 
 # auto encoder class conencting encoder and decoder with the reparametrization class in between
 class VAE(nn.Module):
-    def __init__(self, Encoder, Decoder):
+    def __init__(self, Encoder, Decoder, device):
         super(VAE, self).__init__()
         self.Encoder = Encoder
         self.Decoder = Decoder
+        self.device  = device
         
     def reparameterization(self, mean, var):
-        epsilon = torch.randn_like(var).to(device)       # sampling epsilon        
+        epsilon = torch.randn_like(var).to(self.device)       # sampling epsilon        
         z = mean + var*epsilon                          # reparameterization trick
         return z
         
@@ -98,12 +91,11 @@ class VAE(nn.Module):
         
         return x_hat, mean, log_var, z
 
+
 # encoding function to open a pdf, read it's images, preprocess and calculate theier latent represenations and return them including its paper id
-def encode(pdf_path, pdf_id, transform, model):
+def encode(pdf_path, transform, model, device):
     
     images_encoded = []
-    paper_ids = []
-    
     pdf_file = fitz.open(pdf_path)
 
     # iterate over PDF pages
@@ -111,8 +103,6 @@ def encode(pdf_path, pdf_id, transform, model):
         
         # get the page itself and search for images on it
         page = pdf_file[page_index]
-        image_list = page.getImageList()
-        
         # iterate over found images
         for image_index, img in enumerate(page.getImageList(), start=1):
             
@@ -123,12 +113,11 @@ def encode(pdf_path, pdf_id, transform, model):
                 # extract the image bytes
                 base_image = pdf_file.extractImage(xref)
                 image_bytes = base_image["image"]
-                # get the image extension
-                image_ext = base_image["ext"]
+
 
                 # load it to PIL, convert to RGBA and resize
                 image = [Image.open(io.BytesIO(image_bytes)).convert(mode="RGBA").resize((200,200))]
-
+                    
                 # load image to pytorch pipeline
                 image_dataset = MyDataset(image, transform=transform)
                 image_loader = torch.utils.data.DataLoader(image_dataset, batch_size=1)
@@ -139,9 +128,8 @@ def encode(pdf_path, pdf_id, transform, model):
                     x_hat, mean, log_var, z = model(data.to(device))
 
                 images_encoded.append(z.cpu().numpy()[0])
-                paper_ids.append(pdf_id)
                 
             except (OSError, TypeError):
                 pass
             
-    return images_encoded, paper_ids
+    return images_encoded

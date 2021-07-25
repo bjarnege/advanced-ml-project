@@ -25,7 +25,7 @@ class VectorizeData:
             print("\n"*10+"Warning, no GPU detected, processing will take time..."+"\n"*4, flush=True)
             self.device = "cpu"
             
-    def embed_text(self, texts, max_length = 512):
+    def vectorize(self, texts, max_length = 512):
         
         if type(texts) == list:
             
