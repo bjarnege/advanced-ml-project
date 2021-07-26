@@ -18,11 +18,11 @@ vectorizer = Vectorizer.VectorizeData()
 
 #%% Vectorize abstract:
 print("Vecotrizing abstracts ... \n", flush=True)
-vectors_abstract = [vectorizer.embed_text(abstract) for abstract in tqdm(list(df_metadata["abstract"].values))]
+vectors_abstract = [vectorizer.vectorize(abstract) for abstract in tqdm(list(df_metadata["abstract"].values))]
     
 #%% Vectorize titles:
 print("Vectorizing titles ... \n", flush=True)
-vectors_title = [vectorizer.embed_text(title) for title in tqdm(list(df_metadata["title"].values))]
+vectors_title = [vectorizer.vectorize(title) for title in tqdm(list(df_metadata["title"].values))]
 
 #%% Convert and store vectors
 df_vectors_abstract = pd.DataFrame(np.array(vectors_abstract).squeeze())

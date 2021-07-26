@@ -4,16 +4,16 @@ Created on Sun Jul 25 11:40:46 2021
 
 @author: Bjarne Gerdes
 """
-import torch
-import torchvision.transforms as transforms
-import VAEModel as vae
-import numpy as np
-import requests
 import os
+import torch
+import requests
+import numpy as np
+from KNNRecommends import VAEModel as vae
+import torchvision.transforms as transforms
 
 class VectorizeData:
     
-    def __init__(self, model_path="../../resource/vae_data/VAE_epoch_178.pt", device="cpu"):
+    def __init__(self, model_path, device="cpu"):
         
         self.device = device
         self.transform = transforms.Compose([transforms.ToTensor(),

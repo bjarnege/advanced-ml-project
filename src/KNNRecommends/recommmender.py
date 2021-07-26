@@ -49,7 +49,10 @@ class FindNeighbors:
         if coauthor_paper_ids is not None:
             self.neigh_titles.fit(self.X_titles.loc[coauthor_paper_ids])
             self.neigh_abstracts.fit(self.X_abstracts.loc[coauthor_paper_ids])
-            self.neigh_images.fit(self.X_img.loc[coauthor_paper_ids])
+            
+            img_indexes = set(self.X_img.index).intersection(coauthor_paper_ids)
+
+            self.neigh_images.fit(self.X_img.loc[img_indexes])
         else:
             self.neigh_titles.fit(self.X_titles)
             self.neigh_abstracts.fit(self.X_abstracts)
@@ -67,9 +70,8 @@ class FindNeighbors:
 
     
     def kneighbors(self, title_text, abstract_text, url_pdf, paper_id,
-                   pipeline=["coauthors", "coauthor_filter", "titles", "abstracts", "images"]):
-        results = dict()
-        results["comments"] = []
+                   results, pipeline=["coauthors", "coauthor_filter",
+                                      "titles", "abstracts", "images"]):
         
         if "coauthors" in pipeline or "coauthor_filter" in pipeline:
             ids = self.X_raw.loc[paper_id]["author_id"]
@@ -77,26 +79,41 @@ class FindNeighbors:
             filters = self.X_raw_filtered["author_id"].apply(lambda x: bool(set(all_co_authors) & set(x)))
             
             if "coauthors" in pipeline:
-                results["coauthors"] = self.X_raw_filtered[filters]
-                
+                if sum(filters) > 11:
+                    results["coauthors"] = self.X_raw_filtered[filters].sample(11)
+                else:
+                    results["coauthors"] = self.X_raw_filtered[filters].to_dict()
+
             if "coauthor_filter" in pipeline:
-                if len(results["coauthors"]) == 0:
-                    results["comments"].append("No Co-Author-matches found in dataset. Co-Author-Filter will be ignored.")
+                # Make sure enough co-author-matches will be found to have a sufficient
+                # amount of papers for qualitative recommendations
+                # uses 11 matches because 10 are co-author-matches and 1 can be the paper itself.
+                if sum(filters) < 11:
+                    results["comments"].append("Less than 10 Co-author-matches found in our dataset. "+
+                                               "To ensure our quality standards, the co-author-filter will be disabled.")
                 else:    
-                    self.fit(coauthor_paper_ids=list(results["coauthors"].index))
+                    self.fit(coauthor_paper_ids=list(self.X_raw_filtered[filters].index))
                 
         if "titles" in pipeline:
             vector_title = self.vectorizer_pipeline_words.vectorize(title_text)
-            results["title"] = self.get_neighbors_df(vector_title, self.neigh_titles)
+            results["title"] = self.get_neighbors_df(vector_title, self.neigh_titles).to_dict()
             
         if "abstracts" in pipeline:
             vector_abstracts = self.vectorizer_pipeline_words.vectorize(abstract_text)
-            results["abstracts"] = self.get_neighbors_df(vector_abstracts, self.neigh_abstracts)
+            results["abstracts"] = self.get_neighbors_df(vector_abstracts, self.neigh_abstracts).to_dict()
             
         if "images" in pipeline:
-            vector_images = self.vectorizer_pipeline_images.vectorize(url_pdf)
-            results["images"] = self.get_neighbors_df([vector_images], self.neigh_images)
-        
+            try:
+                vector_images = self.vectorizer_pipeline_images.vectorize(url_pdf)
+                results["images"] = self.get_neighbors_df([vector_images], self.neigh_images).to_dict()
+            except:
+                results["comments"].append("Unable to do image-based recommendations due to missing "+\
+                                           "images in Co-Author papers or the paper itself. "+\
+                                           "You should consider to disable the co-author-filter. "+\
+                                           "Note: Even a paper with images can lead to this error, "+\
+                                           "because the images contained in the paper can't be "+\
+                                           "extracted")
+                
         # refit to ensure to forget about coauthors after calculations
         if "coauthor_filter" in pipeline:
             self.fit()
