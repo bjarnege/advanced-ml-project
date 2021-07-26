@@ -5,16 +5,17 @@ Created on Thu Jul  1 15:09:04 2021
 @author: Bjarne Gerdes
 """
 import os
-import Vectorizer
+import SciBERTVectorizer
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
 
 #%% Read metadata
+print("Read the metadata")
 metadata_path = "../../resource/metadata/"
 df_metadata = pd.read_pickle(metadata_path+"/metadata_df_filtered.pkl")
 
-vectorizer = Vectorizer.VectorizeData()
+vectorizer = SciBERTVectorizer.VectorizeData()
 
 #%% Vectorize abstract:
 print("Vecotrizing abstracts ... \n", flush=True)
@@ -25,6 +26,7 @@ print("Vectorizing titles ... \n", flush=True)
 vectors_title = [vectorizer.vectorize(title) for title in tqdm(list(df_metadata["title"].values))]
 
 #%% Convert and store vectors
+print("Store calculated sciBERT-Vectors")
 df_vectors_abstract = pd.DataFrame(np.array(vectors_abstract).squeeze())
 df_vectors_abstract.index = df_metadata.index
 

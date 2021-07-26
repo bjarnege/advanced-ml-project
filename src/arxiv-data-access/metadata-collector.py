@@ -148,12 +148,17 @@ def author_id_lookup(author, id_dict):
     
 #%% Read all existing files and find their metadata
 # + map authors to a specific id
+print("Reads all downloaded filenames")
 df_filenames = read_all_filename()
+print("Reads the metadata.json")
 df_metadata = read_all_metadata()
+print("Filter metadata by downloaded filenames")
 df_metadata_filtered = filter_by_filenames(df_filenames, df_metadata)
+print("Calculate author to id mapping")
 id_dict = author_id_mapping(df_metadata)
 
 # store authors and ids in df
+print("Add author to id mapping to metadata")
 df_metadata_filtered["author_id"] = df_metadata_filtered["authors_parsed"].apply(lambda x: [author_id_lookup(author, id_dict) for 
                                                    author in x])
 
@@ -164,18 +169,19 @@ df_metadata["author_id"] = df_metadata["authors_parsed"].apply(lambda x: [author
 
 #Create Graph from Metadata
 def Graph(df_metadata):
-  g =nx.Graph()
-  for comb in df_metadata['author_id']:
-    for combination in comb:
-      try:
-        x = list(combinations(df_metadata['author_id'][combination], r = 2))
-        g.add_edges_from(x)
-      except:
-        pass
-  return g
+    co_authors_tuple = set()
+    for ids in tqdm(df_metadata["author_id"].iteritems()):
+        co_authors_tuple.update(combinations(ids[1], r=2))
 
+    g =nx.Graph()
+    g.add_edges_from(co_authors_tuple)
+    
+    return g
+
+print("Calculate co-author graph")
 G = Graph(df_metadata)
 
+print("Store all results as pickle-Files in the resource folder")
 #%% Store files as pickle-Objects
 metadata_path = "../../resource/metadata/"
 if not os.path.exists(metadata_path):

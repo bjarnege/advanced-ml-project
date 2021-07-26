@@ -39,18 +39,23 @@ Falls cuda aktuell nicht installiert ist, sollte es installiert werden!
 Ansonsten wird der Schritt "python ./create-knn-datasets.py" ewig dauern.
 
 ```
-pip install -r requirements.txt  
-cd ./src/arxiv-data-access  
-python ./download-files.py  
-# Der folgende Schritt wird manuell Aausgeführt:  
-# Downloaden der arXiv-Metadaten von:  
-# https://www.kaggle.com/Cornell-University/arxiv?select=arxiv-metadata-oai-snapshot.json  
-# Entpacken in den Ordner resource  
-# Nun weiter in der CMD mit (im Ordner src/arxiv-data-access):  
-python ./metadata-collector.py  
-cd ../KNNRecommends/  
-python ./create-knn-datasets.py  
+cd ./src/arxiv-data-access # navigate to the arxiv-data-access folder  
+python ./download-files.py # please modify the file if you want to download any other topics  
+  
+######################## MANUAL STEP ##########################  
+# The arXiv-metadata must be downloaded manually from kaggle.com by following these steps:  
+https://www.kaggle.com/Cornell-University/arxiv?select=arxiv-metadata-oai-snapshot.json    
+# Unpack the archive, s.t. the file /resource/arxiv-metadata-oai-snapshop.json will be created  
+###############################################################   
 
+cd ./src/arxiv-data-access # navigate again into the arxiv-data-access folder  
+python ./metadata-collector.py # creates the co-author-mapping and DataFrames for the metadata  
+cd ../KNNRecommends # navigate to the KNN-folder  
+python ./create-knn_sciBERT-datasets.py # Vectorize the titles and abstracts of the downloaded papers  
+
+######### MISSING PART ###############  
+# tbd by Johannes  
+######################################  
 ```
 
 # Ausführen des Codes
