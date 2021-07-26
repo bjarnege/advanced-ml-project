@@ -14,6 +14,53 @@ class FindNeighbors:
     
     def __init__(self, author_graph, X_raw, X_raw_filtered, vectorizer_pipeline_words, vectorizer_pipeline_images,\
                  X_titles, X_abstracts, X_img, k):
+        """
+        This function takes all required pickle files and can be used to
+        generate recommendations.
+
+        Parameters
+        ----------
+        author_graph : networkx.Graph
+            Undirected co-author-graph.
+            
+        X_raw : pandas.DataFrame
+            DataFrame containing all metadata.
+            
+        X_raw_filtered : pandas.DataFrame
+            DataFrame containing the metadata about the papers, that are used to 
+            generate recommendations.
+            
+        vectorizer_pipeline_words : class
+            Instance of the class VectorizeData from the KNNRecommends.SciBERTVectorizer-File.
+            Is used to transform a given str into a BERT-Vector-representation.
+            
+        vectorizer_pipeline_images : class
+            Instance of the class VectorizeData from the KNNRecommends.VAEVectorizer-File.
+            Is used to process a given str, containing an URL, by downloading the 
+            pdf-file which can be found at that URL and extracting all images in this file.
+            After that, every image will used as the anput for an varitional auto-encoder 
+            and represenated as a z-vector. 
+            In the final step all z-vectors will be averaged to create a vector representation
+            of every image in the file.
+            
+        X_titles : pandas.DataFrame
+            sciBERT-Vector of every title in the X_raw_filtered DataFrame.
+            
+        X_abstracts : pandas.DataFrame
+            sciBERT-Vector of every abstract in the X_raw_filtered DataFrame.
+            
+        X_img : pandas.DataFrame
+            VAE-imagevector of every paper in the X_raw_filtered DataFrame,
+            that contain extractable images.
+            
+        k : int
+            k used for the KNN-algorithm.
+
+        Returns
+        -------
+        None.
+
+        """
         # Load transformation pipelines
         self.vectorizer_pipeline_words = vectorizer_pipeline_words
         self.vectorizer_pipeline_images = vectorizer_pipeline_images
@@ -32,20 +79,52 @@ class FindNeighbors:
         self.k = k
         
     def cos(self, x_1, x_2):
+        """
+        Cosine distance between two vector representations (image-, abstract-, titlevector).
+
+        Parameters
+        ----------
+        x_1 : pd.Series or np.array
+            Vector representation of paper A.
+        x_2 : pd.Series or np.array
+            Vector representation of paper B.
+.
+
+        Returns
+        -------
+        float
+            cos(paper A, paper B)
+        """
         return spatial.distance.cosine(x_1, x_2)
         
     def fit(self, coauthor_paper_ids=None):
-        
-        # Fit the KNN model based on title BERT-vectors
+        """
+        Fits all three KNN models.
+
+        Parameters
+        ----------
+        coauthor_paper_ids : list, optional
+            If this paper is a list, it will be used to filter the KNN-results based on the condition
+            if a paper written by a co-author.
+            The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        # Init the KNN model based on title BERT-vectors
         self.neigh_titles = NearestNeighbors(n_neighbors=self.k, metric=self.cos)
         
  
-        # Fit the KNN model based on abstract BERT-vectors
+        # Init the KNN model based on abstract BERT-vectors
         self.neigh_abstracts = NearestNeighbors(n_neighbors=self.k, metric=self.cos)
     
-        # Fit the KNN model based on img vectors
+        # Init the KNN model based on img vectors
         self.neigh_images = NearestNeighbors(n_neighbors=self.k, metric=self.cos)
-    
+        
+        # Fit the models and decide of co-authors will be used as a filter
+        # or not
         if coauthor_paper_ids is not None:
             self.neigh_titles.fit(self.X_titles.loc[coauthor_paper_ids])
             self.neigh_abstracts.fit(self.X_abstracts.loc[coauthor_paper_ids])
@@ -60,6 +139,26 @@ class FindNeighbors:
             
             
     def get_neighbors_df(self, vector, knn):
+        """
+        Takes a vector representation and uses KNN
+        to find top 10 neighbors and returns them 
+        as a pandas.DataFrame
+
+        Parameters
+        ----------
+        vector : pd.Series or np.array
+            Vector representation of a paper.
+        knn : class
+            KNN-instance that will be used.
+            For example if the vector is a sciBERT-title vector, the 
+            KNN for titles should be used.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the top 10 matches.
+
+        """
         cosine, neighbors_indexes = knn.kneighbors(vector)
         neighbors = pd.DataFrame(self.X_raw.iloc[neighbors_indexes[0]])
         neighbors["cos sim"] = 1 - cosine[0]
@@ -72,8 +171,39 @@ class FindNeighbors:
     def kneighbors(self, title_text, abstract_text, url_pdf, paper_id,
                    results, pipeline=["coauthors", "coauthor_filter",
                                       "titles", "abstracts", "images"]):
-        
+        """
+        Perform the commendation part in the backend and is used to
+        process the requests of the API to create recommendations.
+
+        Parameters
+        ----------
+        title_text : str
+            title of the paper.
+        abstract_text : str
+            abstract of the paper.
+        url_pdf : str
+            url of the paper.
+        paper_id : str
+            id of the paper.
+        results : dict
+            dict in which the recommendations will be stored.
+        pipeline : list, optional
+            A list of strings, where each string is a part of the pipeline.
+            That will be used to influence or create the recommendations.
+            This presence of a element will lead to the execution of this part,
+            while the absence will lead force the code to skip this element.
+            
+            The default is ["coauthors", "coauthor_filter", "titles", "abstracts", "images"].
+
+        Returns
+        -------
+        results : TYPE
+            DESCRIPTION.
+
+        """
+        # use the coauthor and coauthor_filter step
         if "coauthors" in pipeline or "coauthor_filter" in pipeline:
+            # extract all co
             ids = self.X_raw.loc[paper_id]["author_id"]
             all_co_authors = set(np.array(list(self.author_graph.edges(ids)))[:,1])
             filters = self.X_raw_filtered["author_id"].apply(lambda x: bool(set(all_co_authors) & set(x)))
