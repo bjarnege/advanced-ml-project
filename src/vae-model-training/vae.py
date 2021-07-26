@@ -15,14 +15,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 class MyDataset(Dataset):
     def __init__(self, data, transform=None):
         """
-        
+        This class creates an custom dataset based on the input data.
 
         Parameters
         ----------
-        data : TYPE
-            DESCRIPTION.
-        transform : TYPE, optional
-            DESCRIPTION. The default is None.
+        data : list
+            The list contains all PIL images for either training or testing.
+        transform : torchvision.transforms.transforms.Compose, optional
+            A transforms object containing the transformation pipeline.
 
         Returns
         -------
@@ -34,17 +34,17 @@ class MyDataset(Dataset):
         
     def __getitem__(self, index):
         """
-        
+        Return one element of the dataset.
 
         Parameters
         ----------
-        index : TYPE
-            DESCRIPTION.
+        index : int
+            index of the element to return.
 
         Returns
         -------
-        x : TYPE
-            DESCRIPTION.
+        x : array (e.g. torch.Tensor) ...
+            output type depends the transforms pipeline.
 
         """
         x = self.data[index]
@@ -56,12 +56,12 @@ class MyDataset(Dataset):
     
     def __len__(self):
         """
-        
+        Returns the dataset length.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        int
+            number of images in teh dataset.
 
         """
         return len(self.data)
@@ -71,14 +71,14 @@ class Encoder(nn.Module):
     
     def __init__(self, hidden_dim, latent_dim):
         """
-        
+        Definition of the encoder network.
 
         Parameters
         ----------
-        hidden_dim : TYPE
-            DESCRIPTION.
-        latent_dim : TYPE
-            DESCRIPTION.
+        hidden_dim : int
+            Number of hidden dimensions in linear layer.
+        latent_dim : int
+            Size of the resulting latent vector.
 
         Returns
         -------
@@ -99,19 +99,19 @@ class Encoder(nn.Module):
         
     def forward(self, x):
         """
-        
+        Connection of the Encoder-Layers in a forward pass.
 
         Parameters
         ----------
-        x : TYPE
-            DESCRIPTION.
+        x : torch.Tensor
+            The input tensor to encode.
 
         Returns
         -------
-        mean : TYPE
-            DESCRIPTION.
-        log_var : TYPE
-            DESCRIPTION.
+        mean : torch.Tensor
+            The mean for the variational autoencoder.
+        log_var : torch.Tensor
+            The log variance for the variantional autoencoder.
 
         """
         h_        = F.relu(self.Conv1(x))
@@ -127,14 +127,14 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, latent_dim, hidden_dim):
         """
-        
+        Definition of the decoder network.
 
         Parameters
         ----------
-        latent_dim : TYPE
-            DESCRIPTION.
-        hidden_dim : TYPE
-            DESCRIPTION.
+        latent_dim : int
+            Size of the used latent vector.
+        hidden_dim : int
+            Number of hidden dimensions in linear layer.
 
         Returns
         -------
@@ -151,17 +151,17 @@ class Decoder(nn.Module):
         
     def forward(self, x):
         """
-        
+        Connection of the Decoder-Layers in a forward pass.
 
         Parameters
         ----------
-        x : TYPE
-            DESCRIPTION.
+        x : torch.Tensor
+            The input tensor to decode.
 
         Returns
         -------
-        x_hat : TYPE
-            DESCRIPTION.
+        x_hat : torch.Tensor
+            The reconstructed picture.
 
         """
         h_     = self.LeakyReLU(self.FC_hidden(x))
@@ -177,14 +177,14 @@ class Decoder(nn.Module):
 class VAE(nn.Module):
     def __init__(self, Encoder, Decoder):
         """
-        
+        Connecting the Encoder and Decoder to create the Variational Autoencoder.
 
         Parameters
         ----------
-        Encoder : TYPE
-            DESCRIPTION.
-        Decoder : TYPE
-            DESCRIPTION.
+        Encoder : __main__.Encoder
+            A created Decoder-Object.
+        Decoder : __main__.Decoder
+            A created Encoder-Object.
 
         Returns
         -------
@@ -197,19 +197,19 @@ class VAE(nn.Module):
         
     def reparameterization(self, mean, var):
         """
-        
+        Creating the latent Vector by Reparametrization.
 
         Parameters
         ----------
-        mean : TYPE
-            DESCRIPTION.
-        var : TYPE
-            DESCRIPTION.
+        mean : torch.Tensor
+            Mean of the reconstrucion.
+        var : torch.Tensor
+            Variance of the reconstruction.
 
         Returns
         -------
-        z : TYPE
-            DESCRIPTION.
+        z : torch.Tensor
+            The created latent vactor based on variance and mean.
 
         """
         epsilon = torch.randn_like(var).to(device)       # sampling epsilon        
@@ -219,23 +219,23 @@ class VAE(nn.Module):
                 
     def forward(self, x):
         """
-        
+        Connection of the Encoder, Decoder and Reparametrization for a forward pass.
 
         Parameters
         ----------
-        x : TYPE
-            DESCRIPTION.
+        x : torch.Tensor
+            The input image.
 
         Returns
         -------
-        x_hat : TYPE
-            DESCRIPTION.
-        mean : TYPE
-            DESCRIPTION.
-        log_var : TYPE
-            DESCRIPTION.
-        z : TYPE
-            DESCRIPTION.
+        x_hat : torch.Tensor
+            The reconstructed image.
+        mean : torch.Tensor
+            The mean for reparamtrization for the latent vector.
+        log_var : torch.Tensor
+            The log-variance for reparametrization for the latent vector.
+        z : torch.Tensor
+            The latent vector.
 
         """
         mean, log_var = self.Encoder(x)
@@ -251,21 +251,21 @@ def encode(pdf_path, pdf_id, transform, model):
 
     Parameters
     ----------
-    pdf_path : TYPE
-        DESCRIPTION.
-    pdf_id : TYPE
-        DESCRIPTION.
-    transform : TYPE
-        DESCRIPTION.
-    model : TYPE
-        DESCRIPTION.
+    pdf_path : str
+        Path to the pdf file to encode.
+    pdf_id : str 
+        Unique arxive paper id.
+    transform : torchvision.transforms.transforms.Compose
+        A transforms object containing the transformation pipeline.
+    model : __main__.VAE
+        An created and trained variational autoencoder.
 
     Returns
     -------
-    images_encoded : TYPE
-        DESCRIPTION.
-    paper_ids : TYPE
-        DESCRIPTION.
+    images_encoded : list
+        List of latent vectors as numpy arrays of all pictures in the pdf.
+    paper_ids : list
+        List of the paper ID for all pictures in the pdf. It contains only one ID which occoures as often as the number of pictures in the file.
 
     """
     
