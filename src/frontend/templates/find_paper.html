@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+	<title>Paper Recommender</title>
+	<meta charset="UTF-8">
+	<meta name="description" content="Real estate HTML Template">
+	<meta name="keywords" content="real estate, html">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<!-- Favicon -->
+	<link href="static/img/favicon.ico" rel="shortcut icon"/>
+
+	<!-- Google font -->
+	<link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700,700i,900%7cRoboto:400,400i,500,500i,700,700i&display=swap" rel="stylesheet">
+
+ 
+	<!-- Stylesheets -->
+	<link rel="stylesheet" type= "text/css" href="static/styles/bootstrap.min.css"/>
+	<link rel="stylesheet" type= "text/css" href="static/styles/font-awesome.min.css"/>
+	<link rel="stylesheet" type= "text/css" href="static/styles/slicknav.min.css"/>
+
+	<!-- Main Stylesheets -->
+	<link rel="stylesheet" href="static/styles/style.css"/>
+
+
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	<![endif]-->
+	
+</head>
+<body>
+	<!-- Page Preloder -->
+	<div id="preloder">
+		<div class="loader"></div>
+	</div>
+
+	<!-- Header Section -->
+	<header class="header-section">
+		<a href="/" class="site-logo">
+			<img src="static/img/favicon.ico" alt="", style="max-width: 5%;">
+			<img src="static/img/logo.png" alt="", style="max-width: 5%;">
+		</a>
+		<nav class="header-nav">
+			<ul class="main-menu">
+				<li><a href="/">Home</a></li>
+				<li><a href="find_paper" class="active">Find Paper</a></li>
+				<li><a href="team">Team</a></li>
+			</ul>
+		</nav>
+	</header>
+	<!-- Header Section end -->
+
+	<!-- Hero Section end -->
+	
+	<section class="hero-section set-bg" data-setbg="static/img/hero-bg.jpg">
+		<div class="container">
+			<div class="hero-warp">
+				<h5 style="color:white">Which recommender do you want to use?<br/><br/></h5>
+				<form method="post" action="/find_paper_end" class="main-search-form">
+					<div class="search-input"> 
+						<select size="5"  style="margin-right:2px" name="pipeline" class="form-control" multiple>
+							<option value="coauthors">Co-Authors</option>
+							<option value="coauthor_filter">Co-Author Filter</option>
+							<option value="titles">Titles</option>
+							<option value="abstracts">Abstracts</option>
+							<option value="images">Images</option>
+						  </select>
+						
+						<input style="height:120px; margin-right:2px" id='input_link' name='input_link' type="text" class="form-control" placeholder="INSERT LINK TO ARXIV PAPER (PDF)" />
+						<input style="height:120px; color:white; background-color:#63442f;" type="submit" class="form-control" value = "SUBMIT"/>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+	<!-- Hero Section end -->
+	<section class="intro-section spad">
+		<div class="container">
+			<div class="section-title">
+				<h2>List of Papers</h2>
+				<br><br>
+				<table style="width:100%" border=1 frame=void >
+                    <tr>
+						<th>TITLE</th>
+						<th>URL</th> 
+						<th>CO-AUTHORS</th>
+						<th>RECOMMENDER</th>
+					</tr>
+					{% if data and input_link %} 
+                    {% for recommender in data[input_link].keys() %}
+					
+					{% if data[input_link][recommender] and recommender != 'comments' %}
+					{% for paper in data[input_link][recommender]['title'].keys() %}
+					<tr>
+						<td align=left>{{data[input_link][recommender]['title'][paper]}}</td>
+						<td><a href="https://arxiv.org/abs/{{paper|safe}}">{{paper}}</a></td>
+						<td>{{data[input_link][recommender]['authors'][paper]}}</td>
+					<td>{{recommender}}</td>
+					</tr>
+					{% endfor %} 	
+					{% endif %} 
+					{% endfor %} 		
+					{% endif %} 
+                </table>
+			</div>
+		</div>
+	</section>
+	<!-- Intro Section end -->
+	
+	<!-- Intro Section end -->
+
+	<!--====== Javascripts & Jquery ======-->
+	<script src="static/js/jquery-3.2.1.min.js"></script>
+	<script src="static/js/bootstrap.min.js"></script>
+	<script src="static/js/jquery.slicknav.min.js"></script>
+	<script src="static/js/jquery.magnific-popup.min.js"></script>
+	<script src="static/js/main.js"></script>
+
+	</body>
+</html>
