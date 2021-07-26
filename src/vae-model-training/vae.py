@@ -14,10 +14,39 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # customized dataset class
 class MyDataset(Dataset):
     def __init__(self, data, transform=None):
+        """
+        
+
+        Parameters
+        ----------
+        data : TYPE
+            DESCRIPTION.
+        transform : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         self.data = data
         self.transform = transform
         
     def __getitem__(self, index):
+        """
+        
+
+        Parameters
+        ----------
+        index : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        x : TYPE
+            DESCRIPTION.
+
+        """
         x = self.data[index]
         
         if self.transform:
@@ -26,12 +55,36 @@ class MyDataset(Dataset):
         return x
     
     def __len__(self):
+        """
+        
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
         return len(self.data)
 
 #encoder class
 class Encoder(nn.Module):
     
     def __init__(self, hidden_dim, latent_dim):
+        """
+        
+
+        Parameters
+        ----------
+        hidden_dim : TYPE
+            DESCRIPTION.
+        latent_dim : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         super(Encoder, self).__init__()
 
         self.Conv1 = nn.Conv2d(4, 16, 5, stride = 1)
@@ -45,6 +98,22 @@ class Encoder(nn.Module):
         self.training = True
         
     def forward(self, x):
+        """
+        
+
+        Parameters
+        ----------
+        x : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        mean : TYPE
+            DESCRIPTION.
+        log_var : TYPE
+            DESCRIPTION.
+
+        """
         h_        = F.relu(self.Conv1(x))
         h_        = F.relu(self.Conv2(h_))
         h_        = h_.view(-1, 32*192*192)
@@ -57,6 +126,21 @@ class Encoder(nn.Module):
 # decoder class
 class Decoder(nn.Module):
     def __init__(self, latent_dim, hidden_dim):
+        """
+        
+
+        Parameters
+        ----------
+        latent_dim : TYPE
+            DESCRIPTION.
+        hidden_dim : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         super(Decoder, self).__init__()
         self.FC_hidden = nn.Linear(latent_dim, hidden_dim)
         self.FC_output = nn.Linear(hidden_dim, 192*192*32)
@@ -66,6 +150,20 @@ class Decoder(nn.Module):
         self.LeakyReLU = nn.LeakyReLU(0.2)
         
     def forward(self, x):
+        """
+        
+
+        Parameters
+        ----------
+        x : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        x_hat : TYPE
+            DESCRIPTION.
+
+        """
         h_     = self.LeakyReLU(self.FC_hidden(x))
         h_     = self.LeakyReLU(self.FC_output(h_))
         h_     = h_.view(-1, 32, 192, 192)
@@ -78,17 +176,68 @@ class Decoder(nn.Module):
 # auto encoder class conencting encoder and decoder with the reparametrization class in between
 class VAE(nn.Module):
     def __init__(self, Encoder, Decoder):
+        """
+        
+
+        Parameters
+        ----------
+        Encoder : TYPE
+            DESCRIPTION.
+        Decoder : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
         super(VAE, self).__init__()
         self.Encoder = Encoder
         self.Decoder = Decoder
         
     def reparameterization(self, mean, var):
+        """
+        
+
+        Parameters
+        ----------
+        mean : TYPE
+            DESCRIPTION.
+        var : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        z : TYPE
+            DESCRIPTION.
+
+        """
         epsilon = torch.randn_like(var).to(device)       # sampling epsilon        
         z = mean + var*epsilon                          # reparameterization trick
         return z
         
                 
     def forward(self, x):
+        """
+        
+
+        Parameters
+        ----------
+        x : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        x_hat : TYPE
+            DESCRIPTION.
+        mean : TYPE
+            DESCRIPTION.
+        log_var : TYPE
+            DESCRIPTION.
+        z : TYPE
+            DESCRIPTION.
+
+        """
         mean, log_var = self.Encoder(x)
         z = self.reparameterization(mean, torch.exp(0.5 * log_var)) # takes exponential function (log var -> var)
         x_hat = self.Decoder(z)
@@ -97,6 +246,28 @@ class VAE(nn.Module):
 
 # encoding function to open a pdf, read it's images, preprocess and calculate theier latent represenations and return them including its paper id
 def encode(pdf_path, pdf_id, transform, model):
+    """
+    
+
+    Parameters
+    ----------
+    pdf_path : TYPE
+        DESCRIPTION.
+    pdf_id : TYPE
+        DESCRIPTION.
+    transform : TYPE
+        DESCRIPTION.
+    model : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    images_encoded : TYPE
+        DESCRIPTION.
+    paper_ids : TYPE
+        DESCRIPTION.
+
+    """
     
     images_encoded = []
     paper_ids = []

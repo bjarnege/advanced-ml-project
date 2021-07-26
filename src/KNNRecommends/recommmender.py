@@ -203,17 +203,19 @@ class FindNeighbors:
         """
         # use the coauthor and coauthor_filter step
         if "coauthors" in pipeline or "coauthor_filter" in pipeline:
-            # extract all co
+            # extract all co-author of the author of the paper 
             ids = self.X_raw.loc[paper_id]["author_id"]
             all_co_authors = set(np.array(list(self.author_graph.edges(ids)))[:,1])
             filters = self.X_raw_filtered["author_id"].apply(lambda x: bool(set(all_co_authors) & set(x)))
             
+            # Add coauthor recommendations to the result.
             if "coauthors" in pipeline:
                 if sum(filters) > 11:
                     results["coauthors"] = self.X_raw_filtered[filters].sample(11)
                 else:
                     results["coauthors"] = self.X_raw_filtered[filters].to_dict()
-
+                    
+            # if the coauthorfilter step is in the pipeline than limit the data to only the co-authors
             if "coauthor_filter" in pipeline:
                 # Make sure enough co-author-matches will be found to have a sufficient
                 # amount of papers for qualitative recommendations
@@ -223,15 +225,18 @@ class FindNeighbors:
                                                "To ensure our quality standards, the co-author-filter will be disabled.")
                 else:    
                     self.fit(coauthor_paper_ids=list(self.X_raw_filtered[filters].index))
-                
+        
+        # if the titles-step is part of the pipeline create recommendations use the title-KNN
         if "titles" in pipeline:
             vector_title = self.vectorizer_pipeline_words.vectorize(title_text)
             results["title"] = self.get_neighbors_df(vector_title, self.neigh_titles).to_dict()
-            
+        
+        # if the abstratcs-step is part of the pipeline create recommendations use the abstratcs-KNN
         if "abstracts" in pipeline:
             vector_abstracts = self.vectorizer_pipeline_words.vectorize(abstract_text)
             results["abstracts"] = self.get_neighbors_df(vector_abstracts, self.neigh_abstracts).to_dict()
-            
+        
+        # if the images-step is part of the pipeline create recommendations use the images-KNN
         if "images" in pipeline:
             try:
                 vector_images = self.vectorizer_pipeline_images.vectorize(url_pdf)
