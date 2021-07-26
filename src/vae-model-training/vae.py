@@ -1,5 +1,6 @@
-import io
 import fitz
+import io
+import numpy as np
 from PIL import Image
 
 import torch
@@ -293,19 +294,25 @@ def encode(pdf_path, pdf_id, transform, model):
 
 
                 # load it to PIL, convert to RGBA and resize
-                image = [Image.open(io.BytesIO(image_bytes)).convert(mode="RGBA").resize((200,200))]
+                image = Image.open(io.BytesIO(image_bytes)).convert(mode="RGBA").resize((200,200))
 
-                # load image to pytorch pipeline
-                image_dataset = MyDataset(image, transform=transform)
-                image_loader = torch.utils.data.DataLoader(image_dataset, batch_size=1)
+                # proof if there is content in the picture based on the average standard deviation of the channels, ignore them otherwise
+                red, green, blue, alpha = image.split()
+                channel_average_standard_deviation = np.mean([np.std(np.asarray(red).flatten()), np.std(np.asarray(green).flatten()), np.std(np.asarray(blue).flatten()), np.std(np.asarray(alpha).flatten())])
+                
+                if channel_average_standard_deviation > 0:
 
-                # feed image to the VAE Model
-                batch_idx, data = next(enumerate(image_loader))
-                with torch.no_grad():
-                    x_hat, mean, log_var, z = model(data.to(device))
+                    # load image to pytorch pipeline
+                    image_dataset = MyDataset([image], transform=transform)
+                    image_loader = torch.utils.data.DataLoader(image_dataset, batch_size=1)
 
-                images_encoded.append(z.cpu().numpy()[0])
-                paper_ids.append(pdf_id)
+                    # feed image to the VAE Model
+                    batch_idx, data = next(enumerate(image_loader))
+                    with torch.no_grad():
+                        x_hat, mean, log_var, z = model(data.to(device))
+
+                    images_encoded.append(z.cpu().numpy()[0])
+                    paper_ids.append(pdf_id)
                 
             except (OSError, TypeError):
                 pass
