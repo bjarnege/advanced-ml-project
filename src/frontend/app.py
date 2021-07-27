@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 import requests
-import pickle
+#import pickle
 import jinja2
 
-with open('results.pkl', 'rb') as f:
-    data = pickle.load(f)
+#with open('results.pkl', 'rb') as f:
+#    data = pickle.load(f)
 
 # define function to retreive all data from our API
 def find_papers(input_link, pipeline):
@@ -19,6 +19,7 @@ app = Flask(__name__)
 
 # disabling caching of this app
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
 data=False
 input_link = False
 error = False
