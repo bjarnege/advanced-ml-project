@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 # disabling caching of this app
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-
+data=False
 input_link = False
 error = False
 
@@ -40,7 +40,7 @@ def find_paper_end():
     global data
     global input_link
     input_link = request.form['input_link']
-    #data = find_papers(input_link, pipeline)
+    data = find_papers(input_link, pipeline)
     return redirect(url_for('find_paper'))
 
 # This function returns the contact.html page containing the contact details from our team.
