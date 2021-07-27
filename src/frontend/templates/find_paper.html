@@ -78,16 +78,26 @@
 	<section class="intro-section spad">
 		<div class="container">
 			<div class="section-title">
+				{% if error %}
+				<h5 style="color:#c23c3c;">{{error}}<br/><br/></h5>
+				{% endif %}
+				{% if data and input_link %}
 				<h2>List of Papers</h2>
+				{% endif %}
 				<br><br>
-				<table style="width:100%" border=1 frame=void >
-                    <tr>
-						<th>TITLE</th>
-						<th>URL</th> 
-						<th>CO-AUTHORS</th>
-						<th>RECOMMENDER</th>
+				<table style="width:100%; border-collapse: separate; border-spacing: 30px 30px;">
+					{% if data and input_link %}
+					{% for comment in data[input_link]["comments"] %}
+					<tr>
+						<h5 style="color:#63442f;">{{comment}}<br/><br/></h5>
 					</tr>
-					{% if data and input_link %} 
+					{% endfor %}
+                    <tr>
+						<th><h4>TITLE</h4></th>
+						<th><h4>URL</h4></th> 
+						<th><h4>CO-AUTHORS</h4></th>
+						<th><h4>RECOMMENDER</h4></th>
+					</tr>
                     {% for recommender in data[input_link].keys() %}
 					
 					{% if data[input_link][recommender] and recommender != 'comments' %}
@@ -96,7 +106,7 @@
 						<td align=left>{{data[input_link][recommender]['title'][paper]}}</td>
 						<td><a href="https://arxiv.org/abs/{{paper|safe}}">{{paper}}</a></td>
 						<td>{{data[input_link][recommender]['authors'][paper]}}</td>
-					<td>{{recommender}}</td>
+						<td>{{recommender}}</td>
 					</tr>
 					{% endfor %} 	
 					{% endif %} 

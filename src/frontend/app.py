@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 import requests
+import pickle
+import jinja2
 
-#with open('/Users/anabellilja/Downloads/results.pkl', 'rb') as f:
-#    data = pickle.load(f)
+with open('results.pkl', 'rb') as f:
+    data = pickle.load(f)
 
 # define function to retreive alle data from our API
 # def get_data():
@@ -12,7 +14,7 @@ import requests
 
 def find_papers(input_link, pipeline):
     url = f"0.0.0.0:12345/api?url={input_link}&pipeline={pipeline}"
-    return requests.get(url).content.decode()
+    #return requests.get(url).content.decode()
 
 # app = Flask(__name__) creates an instance of the Flask class called app. 
 # the first argument is the name of the module or package (in this case Flask). 
@@ -30,8 +32,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # this code registers the index() view function as a handler for the root URL of the application. 
 # everytime the application receives a request where the path is "/" the index() function will be invoked and the return the index.html template.
-data = False
+#data = False
 input_link = False
+error = False
 
 @app.route("/")
 def index():
@@ -44,7 +47,10 @@ def index():
 # Converting the isbn to an int is necessary to be able to alter books. 
 @app.route("/find_paper")
 def find_paper():
-    return render_template('find_paper.html', data=data, input_link=input_link)
+    try:
+        return render_template('find_paper.html', data=data, input_link=input_link, error=error)
+    except jinja2.exceptions.UndefinedError:
+        return render_template('find_paper.html', data=data, input_link=False, error="Your URL does not work. Please try again.")
 
 # This function is used to add new books to the database. 
 # The HTTP methods post and get are used when accessing URLs. 
@@ -56,7 +62,7 @@ def find_paper_end():
     global data
     global input_link
     input_link = request.form['input_link']
-    data = find_papers(input_link, pipeline)
+    #data = find_papers(input_link, pipeline)
     return redirect(url_for('find_paper'))
 
 # This function returns the contact.html page containing the contact details from our team.
@@ -69,4 +75,4 @@ def team():
 # In our case we are executing the script. Therefore, __name__ will be equal to "__main__". 
 # That means the if conditional statement is satisfied and the app.run() method will be executed.
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
