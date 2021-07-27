@@ -42,7 +42,7 @@ class VectorizeData:
         # initialize instance of the VAE-decoder
         self.decoder = vae.Decoder(latent_dim=50, hidden_dim = 300)
         # initiliaze instance of the whole VAE
-        self.VAEInstance= vae.VAE(Encoder=self.encoder, Decoder=self.decoder)
+        self.VAEInstance= vae.VAE(Encoder=self.encoder, Decoder=self.decoder, device=self.device)
         # load pretrained model from model_path
         self.VAEInstance.load_state_dict(torch.load(model_path, map_location="cpu"))
         self.VAEInstance.eval()
@@ -63,13 +63,15 @@ class VectorizeData:
         ----------
         url : str
             Url to the arXiv-pdf.
-
+        
+ 
         Returns
         -------
         np.array
             average of the z-vector.
 
         """
+
         r = requests.get(url, allow_redirects=True)
         open('..tmp_content.pdf', 'wb').write(r.content)
         images = vae.encode('./..tmp_content.pdf', self.transform, self.VAEInstance, self.device)
