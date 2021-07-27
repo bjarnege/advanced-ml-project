@@ -20,14 +20,6 @@ app = Flask(__name__)
 # disabling caching of this app
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-# we set the Track Modifications to True so thatFlask-SQLAlchemy will track modifications of objects and emit signals. 
-# the default is None, which enables tracking but issues a warning that it will be disabled by default in the future. 
-# this requires extra memory and should be disabled if not needed.
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-
-# this code registers the index() view function as a handler for the root URL of the application. 
-# everytime the application receives a request where the path is "/" the index() function will be invoked and the return the index.html template.
-#data = False
 input_link = False
 error = False
 
@@ -35,11 +27,6 @@ error = False
 def index():
     return render_template('index_2.html')
 
-# This function displays all books that are currently in the database as well as their availability status. 
-# The data is extracted via the pandas.read_sql function and saved in MyBook, which is used in the newbook.html to display all books. 
-# It returns a table that includes every book in the database as well as the correct author_id. 
-# The join is performed to add a column that contains the isbn of books that are borrowed and that contains NONE when the book is not borrowed.
-# Converting the isbn to an int is necessary to be able to alter books. 
 @app.route("/find_paper")
 def find_paper():
     try:
@@ -47,10 +34,6 @@ def find_paper():
     except jinja2.exceptions.UndefinedError:
         return render_template('find_paper.html', data=data, input_link=False, error="Your URL does not work. Please try again.")
 
-# This function is used to add new books to the database. 
-# The HTTP methods post and get are used when accessing URLs. 
-# GET is used to request data from a specified resource.
-# POST is used to send data to a server to create/update a resource. In this case we create a new book with all its attributes. 
 @app.route("/find_paper_end", methods=['GET', 'POST'])
 def find_paper_end():
     pipeline = ",".join(request.form.getlist("pipeline"))
@@ -66,7 +49,7 @@ def team():
     return render_template('contact.html')
 
 # Python assigns the name "__main__" to the script when the script is executed. 
-# If the script is imported from another script, the script keeps it given name (e.g. library.py). 
+# If the script is imported from another script, the script keeps it given name (e.g. app.py). 
 # In our case we are executing the script. Therefore, __name__ will be equal to "__main__". 
 # That means the if conditional statement is satisfied and the app.run() method will be executed.
 if __name__ == '__main__':
