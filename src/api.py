@@ -35,7 +35,7 @@ def load_all_files():
         
     # Initilize vectorizing pipelines
     vectorizer_pipeline_words = textvectorizer()
-    vectorizer_pipeline_images = imagevectorizer("../resource/vae_data/VAE_epoch_178.pt")
+    vectorizer_pipeline_images = imagevectorizer("../resource/vae_data/VAE_epoch_147.pt")
     
     # Initialize the knn-class
     fn = FindNeighbors(author_graph, X_raw, X_raw_filtered, vectorizer_pipeline_words, vectorizer_pipeline_images,\
