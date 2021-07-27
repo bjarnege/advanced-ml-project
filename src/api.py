@@ -85,7 +85,11 @@ class API(FlaskView):
             metadata in a dict.
 
         """
-        paper_id = url[22:].replace(".pdf","") 
+        if "ftp" in url:
+            paper_id = url.split("/")[-1].replace(".pdf","") 
+        else:
+            paper_id = url[22:].replace(".pdf","") 
+            
         data = {"url": url,
                 "paper_id": paper_id}
         

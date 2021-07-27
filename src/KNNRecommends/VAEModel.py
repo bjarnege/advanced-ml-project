@@ -8,9 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-#ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # customized dataset class
 class MyDataset(Dataset):
@@ -176,7 +174,7 @@ class Decoder(nn.Module):
 
 # auto encoder class conencting encoder and decoder with the reparametrization class in between
 class VAE(nn.Module):
-    def __init__(self, Encoder, Decoder):
+    def __init__(self, Encoder, Decoder, device="cuda"):
         """
         Connecting the Encoder and Decoder to create the Variational Autoencoder.
 
@@ -195,6 +193,7 @@ class VAE(nn.Module):
         super(VAE, self).__init__()
         self.Encoder = Encoder
         self.Decoder = Decoder
+        self.device = device
         
     def reparameterization(self, mean, var):
         """
@@ -213,7 +212,7 @@ class VAE(nn.Module):
             The created latent vactor based on variance and mean.
 
         """
-        epsilon = torch.randn_like(var).to(device)       # sampling epsilon        
+        epsilon = torch.randn_like(var).to(self.device)       # sampling epsilon        
         z = mean + var*epsilon                          # reparameterization trick
         return z
         
@@ -246,7 +245,7 @@ class VAE(nn.Module):
         return x_hat, mean, log_var, z
 
 # encoding function to open a pdf, read it's images, preprocess and calculate theier latent represenations and return them including its paper id
-def encode(pdf_path, pdf_id, transform, model):
+def encode(pdf_path, transform, model, device):
     """
     
 
@@ -254,12 +253,12 @@ def encode(pdf_path, pdf_id, transform, model):
     ----------
     pdf_path : str
         Path to the pdf file to encode.
-    pdf_id : str 
-        Unique arxive paper id.
     transform : torchvision.transforms.transforms.Compose
         A transforms object containing the transformation pipeline.
     model : __main__.VAE
         An created and trained variational autoencoder.
+    device : str
+        Device where the VAE is stored at
 
     Returns
     -------
