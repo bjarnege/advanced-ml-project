@@ -10,15 +10,15 @@ import pickle
 
 
 
-# download the dataset if not already excisting
+# download the model and encodings if not already excisting
 if list(Path("../../resource/vae_data/").rglob("*.*")) == []:
     os.mkdir("../../resource/vae_data/")
 
     gdd.download_file_from_google_drive(file_id='1BEIoJD61XybT9Vhq3pW6OEWYTWE48PPZ', dest_path='../../resource/vae_data/epoch147.zip', unzip=True)
     os.remove('../../resource/vae_data/epoch147.zip')
 
-    gdd.download_file_from_google_drive(file_id='1Dyv9MKKMKGebfYsd0mruh67wM1wjnW95', dest_path='../../resource/vae_data/encodings.zip', unzip=True)
-    os.remove('../../resource/vae_data/encodings.zip')
+    gdd.download_file_from_google_drive(file_id='1VMzrhLfM_ltsKQs1btaZijfBHoXJcOCJ', dest_path='../../resource/vae_data/encoded_images.zip', unzip=True)
+    os.remove('../../resource/vae_data/encoded_images.zip')
 
 # function to read all paper ids and filepaths to a dataframe
 def read_all_filename(output_path = "../../resource/arxiv_data"):
