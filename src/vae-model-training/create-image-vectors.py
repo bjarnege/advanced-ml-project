@@ -1,3 +1,5 @@
+import os
+from google_drive_downloader import GoogleDriveDownloader as gdd
 import torch
 import torchvision.transforms as transforms
 import vae
@@ -5,6 +7,18 @@ from tqdm import tqdm
 from pathlib import Path
 import pandas as pd
 import pickle
+
+
+
+# download the dataset if not already excisting
+if list(Path("../../resource/vae_data/").rglob("*.*")) == []:
+    os.mkdir("../../resource/vae_data/")
+
+    gdd.download_file_from_google_drive(file_id='1BEIoJD61XybT9Vhq3pW6OEWYTWE48PPZ', dest_path='../../resource/vae_data/epoch147.zip', unzip=True)
+    os.remove('../../resource/vae_data/epoch147.zip')
+
+    gdd.download_file_from_google_drive(file_id='1Dyv9MKKMKGebfYsd0mruh67wM1wjnW95', dest_path='../../resource/vae_data/encodings.zip', unzip=True)
+    os.remove('../../resource/vae_data/encodings.zip')
 
 # function to read all paper ids and filepaths to a dataframe
 def read_all_filename(output_path = "../../resource/arxiv_data"):
@@ -40,7 +54,7 @@ decoder = vae.Decoder(latent_dim=50, hidden_dim = 300)
 
 model = vae.VAE(Encoder=encoder, Decoder=decoder).to(device)
 
-model.load_state_dict(torch.load("../../resource/vae_data/epoch147.pt", map_location=device))
+model.load_state_dict(torch.load("../../resource/vae_data/VAE_epoch_147.pt", map_location=device))
 
 model.eval()
 
@@ -61,5 +75,8 @@ for idx in tqdm(list(files.index)):
     encoding_result['paper_ids'] += ids
 
 
-with open('../../resource/vae_data/encodings.pkl', 'wb') as f:
+with open("../../resource/vae_data/encodings.zip", 'wb') as f:
     pickle.dump(encoding_result, f)
+
+
+
