@@ -89,7 +89,7 @@ class API(FlaskView):
         data = {"url": url,
                 "paper_id": paper_id}
         
-        data_metadata = self.X_raw.loc["quant-ph/0110064"][["title", "authors", "categories", "abstract"]].to_dict()
+        data_metadata = self.X_raw.loc[paper_id][["title", "authors", "categories", "abstract"]].to_dict()
         data_metadata["abstract"] = data_metadata["abstract"].replace("\n", " ") 
         
         # merge both dicts and return them
@@ -125,8 +125,8 @@ class API(FlaskView):
                 
             To use multiple elements the string need to follow the following format:
                 coauthors,coauthor_filter,titles,abstracts,images   -> To use all 5 pipeline-elements
-                titles,abstracts,images                             -> To use the KNN based models w/o the co-author-filter
-                coauthor_filter, titles                             -> To created KNN based title recommendations with co-author filter
+                titles,abstracts,images                             -> To use the KNN-based models w/o the co-author-filter
+                coauthor_filter, titles                             -> To create KNN-based title recommendations with co-author filter
                 ...
                 
 
@@ -143,15 +143,15 @@ class API(FlaskView):
         
         try:
             data = self.find_metadata(url)
+            pipeline = pipeline.replace(" ","").split(",")    
+            results = self.find_neighbors.kneighbors(data["title"], data["abstract"], data["url"], data["paper_id"], 
+                                                results, pipeline)
         except:
             results["comments"].append("Unable to find metadata. This happens most likely because "+\
                                        "the paper you've submitted is not part of our metadata, because it's too new "+\
                                        "or the submitted url is invalid. "+\
                                        "Please check the url and try an older paper.")
         
-        pipeline = pipeline.replace(" ","").split(",")    
-        results = self.find_neighbors.kneighbors(data["title"], data["abstract"], data["url"], data["paper_id"], 
-                                            results, pipeline)
         return results
 
     @route('/api')
@@ -174,5 +174,3 @@ class API(FlaskView):
 if __name__ == '__main__':
     API.register(app, route_base = '/')
     app.run(host='0.0.0.0', port=12345, debug=False)
-
-

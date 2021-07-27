@@ -42,10 +42,12 @@ class VectorizeData:
         # initialize instance of the VAE-decoder
         self.decoder = vae.Decoder(latent_dim=50, hidden_dim = 300)
         # initiliaze instance of the whole VAE
-        self.VAEInstance= vae.VAE(Encoder=self.encoder, Decoder=self.decoder, device=self.device)
+        self.VAEInstance= vae.VAE(Encoder=self.encoder, Decoder=self.decoder)
         # load pretrained model from model_path
-        self.VAEInstance.load_state_dict(torch.load(model_path, map_location=self.device))
+        self.VAEInstance.load_state_dict(torch.load(model_path, map_location="cpu"))
         self.VAEInstance.eval()
+        
+        self.VAEInstance = self.VAEInstance.to(device)
     
 
     def vectorize(self, url):

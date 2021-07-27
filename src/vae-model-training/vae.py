@@ -198,7 +198,7 @@ class VAE(nn.Module):
         
     def reparameterization(self, mean, var):
         """
-        Creating the latent Vector by Reparametrization.
+        Creating the latent Vector by reparametrization.
 
         Parameters
         ----------

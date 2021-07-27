@@ -54,4 +54,4 @@ def team():
 # In our case we are executing the script. Therefore, __name__ will be equal to "__main__". 
 # That means the if conditional statement is satisfied and the app.run() method will be executed.
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)

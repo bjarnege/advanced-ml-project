@@ -52,12 +52,13 @@ transform = transforms.Compose([transforms.ToTensor(),
 encoder = vae.Encoder(hidden_dim=300, latent_dim=50)
 decoder = vae.Decoder(latent_dim=50, hidden_dim = 300)
 
-model = vae.VAE(Encoder=encoder, Decoder=decoder).to(device)
+model = vae.VAE(Encoder=encoder, Decoder=decoder).to("cpu")
 
-model.load_state_dict(torch.load("../../resource/vae_data/VAE_epoch_147.pt", map_location=device))
+model.load_state_dict(torch.load("../../resource/vae_data/VAE_epoch_147.pt", map_location="cpu"))
 
 model.eval()
 
+model = model.to(device)
 # initialize dict to save the encoded pictures and its paper IDs
 encoding_result = {'encoded_pictures': [], 'paper_ids': []}
 
@@ -75,7 +76,7 @@ for idx in tqdm(list(files.index)):
     encoding_result['paper_ids'] += ids
 
 
-with open("../../resource/vae_data/encodings.zip", 'wb') as f:
+with open("../../resource/vae_data/encoded_images.pkl", 'wb') as f:
     pickle.dump(encoding_result, f)
 
 
