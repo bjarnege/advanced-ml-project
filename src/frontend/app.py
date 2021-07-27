@@ -6,15 +6,10 @@ import jinja2
 with open('results.pkl', 'rb') as f:
     data = pickle.load(f)
 
-# define function to retreive alle data from our API
-# def get_data():
-    #url =  "http://0.0.0.0:12345/recommend"
-    #data = requests.get(url).json()
-    #return data
-
+# define function to retreive all data from our API
 def find_papers(input_link, pipeline):
-    url = f"0.0.0.0:12345/api?url={input_link}&pipeline={pipeline}"
-    #return requests.get(url).content.decode()
+    url = f"http://127.0.0.1:12345/api?url={input_link}&pipeline={pipeline}"
+    return {input_link: requests.get(url).json()}
 
 # app = Flask(__name__) creates an instance of the Flask class called app. 
 # the first argument is the name of the module or package (in this case Flask). 
