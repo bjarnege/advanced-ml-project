@@ -4,7 +4,7 @@
 
 Das folgende Projekt stellt hohe Anforderungen an die Hardware, auf der es ausgeführt wird.  
 Abhängig davon, ob ein Neutraining angestrebt wird, sind so also mindestens 30 GB Speicherplatz vorzuhalten.  
-Des weiteren werden mindestens 32 GB RAM für die Vorhersagegenerierung empfohlen. Auf Systemen mit geringeren Spezifikationen ist das Projekt nicht getestet worden und kann ggf. zu Fehlfunktionen führen.  
+Des weiteren werden **mindestens 32 GB RAM** für die Vorhersagegenerierung empfohlen. Auf Systemen mit geringeren Spezifikationen ist das Projekt nicht getestet worden und kann ggf. zu Fehlfunktionen führen.  
 
 Um das Neutrainining anzuregen ist außerdem eine performante GPU + CUDA empfehlenswert, da so der Prozess deutlich verkürzt wird.  
 
